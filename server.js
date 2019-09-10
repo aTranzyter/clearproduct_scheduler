@@ -13,6 +13,7 @@ var cron = require('node-cron');
 var models = require('./app/models');
 const config = require('./app/config');
 const fileUploadRoute = require('./app/routes/fileUploadRoutes');
+const { update_color_range } = require('./app/manager/procedure')
 var cronRunning = {};
 config.isProd = process.argv.includes('--production');
 
@@ -93,6 +94,7 @@ models.sequelize.sync().then(async function () {
     // start app ===============================================
     // startup our app at http://localhost:8082
     app.listen(port);
+    update_color_range();
     console.log('server running on port ' + port);
     let schedule = {
         second: '0', minute: '*', hour: '*',

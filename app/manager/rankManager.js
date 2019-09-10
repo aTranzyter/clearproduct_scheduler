@@ -14,13 +14,25 @@ function updateClaimLineRanking() {
         })
         resp.on('end', function () {
             TIMELOGGER.info(`updateClaimLineRanking ${data}`)
-            updateClaimSummaryRanking();
+            // updateClaimSummaryRanking();
+            update_color_range();
         });
     }).on('error', function(err) {
         TIMELOGGER.error(`updateClaimLineRanking ${err.message}`)
     });
 }
 
+async function update_color_range() {
+    models.sequelize.query(`call Update_Color_Range();`)
+        .then(function() {
+            TIMELOGGER.info(`Stored Procedure Update_Color_Range Success`);
+        })
+        .catch(function(err) {
+            TIMELOGGER.error(`Stored Procedure Err: ${err.message}`)
+        })
+}
+
+// eslint-disable-next-line
 async function updateClaimSummaryRanking() {
     TIMELOGGER.info(`Claim_Summary Ranking started.`);
     try {
