@@ -230,7 +230,7 @@ function copy(oldPath,newPath) {
             if (err)
                 TIMELOGGER.error(`File Upload write stream error: ${err.message}`)
 
-            TIMELOGGER.error(`File deleted after upload`)
+            TIMELOGGER.info(`File deleted after upload`)
         });
     });
 
