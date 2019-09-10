@@ -16,6 +16,7 @@ module.exports = function (Sequelize, Types) {
         assigned_to_changed_date: { type: Types.DATE },
         status_changed_date: { type: Types.DATE },
         note: { type: Types.STRING },
+        color_hex: { type: Types.STRING },
         // note: { type: Types.STRING },
         updatedBy: { type: Types.STRING },
 

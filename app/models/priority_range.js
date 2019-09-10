@@ -2,6 +2,7 @@ module.exports = function (Sequelize, Types) {
     let Priority_Range = Sequelize.define('Priority_Range', {
         start_value: { type: Types.INTEGER },
         end_value: { type: Types.INTEGER },
+        base_percent: {type: Types.INTEGER},
         color_hex: { type: Types.STRING },
         is_active: { type: Types.BOOLEAN, defaultValue: false }
     }, {
