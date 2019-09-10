@@ -42,27 +42,27 @@ module.exports = function (Sequelize, Types) {
             // to the current date (when deletion was done). paranoid will only work if
             // timestamps are enabled
             paranoid: true,
-            classMethods: {
-                associate: function (models) {
-                    models.Claim_Summary.belongsTo(models.Assignee, {
-                        foreignKey: 'assigned_to',
-                        targetKey: 'user_id'
-                    });
-                    models.Claim_Summary.belongsTo(models.Assignee, {
-                        foreignKey: 'updatedBy',
-                        targetKey: 'user_id'
-                    });
-                    models.Claim_Summary.belongsTo(models.Status, {
-                        foreignKey: 'status',
-                        targetKey: 'status_code'
-                    });
-                    models.Claim_Summary.hasMany(models.Claim_Lines, {
-                        as: 'Claim_Line',
-                        foreignKey: 'claim_id'
-                    })
-                }
-            }
+            // classMethods: {
+            //     associate: function (models) {}
+            // }
         });
-
+        Claim_Summary.associate = function(models) {
+            models.Claim_Summary.belongsTo(models.Assignee, {
+                foreignKey: 'assigned_to',
+                targetKey: 'user_id'
+            });
+            models.Claim_Summary.belongsTo(models.Assignee, {
+                foreignKey: 'updatedBy',
+                targetKey: 'user_id'
+            });
+            models.Claim_Summary.belongsTo(models.Status, {
+                foreignKey: 'status',
+                targetKey: 'status_code'
+            });
+            models.Claim_Summary.hasMany(models.Claim_Lines, {
+                as: 'Claim_Line',
+                foreignKey: 'claim_id'
+            })
+        }
     return Claim_Summary;
 };

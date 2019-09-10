@@ -67,19 +67,20 @@ module.exports = function (Sequlize, Types) {
             // to the current date (when deletion was done). paranoid will only work if
             // timestamps are enabled
             paranoid: true,
-            classMethods: {
-                associate: function (models) {
-                    models.Claim_Lines.belongsTo(models.Claim_Summary, {
-                        as: 'Claim',
-                        foreignKey: 'claim_id',
-                        targetKey: 'claim_id',
-                    });
-                    models.Claim_Lines.belongsTo(models.Assignee, {
-                        foreignKey: 'updatedBy',
-                        targetKey: 'user_id'
-                    })
-                }
-            }
+            // classMethods: {
+            //     associate: function (models) { }
+            // }
         });
+        Claim_Lines.associate = function(models) {
+            models.Claim_Lines.belongsTo(models.Claim_Summary, {
+                as: 'Claim',
+                foreignKey: 'claim_id',
+                targetKey: 'claim_id',
+            });
+            models.Claim_Lines.belongsTo(models.Assignee, {
+                foreignKey: 'updatedBy',
+                targetKey: 'user_id'
+            })
+        }
     return Claim_Lines;
 };
