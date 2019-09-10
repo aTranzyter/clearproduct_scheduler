@@ -103,7 +103,7 @@ models.sequelize.sync().then(async function () {
     let count = await models.Schedule.count();
     if (count === 0) {
         console.log('create schedule');
-        await models.Schedule.create({ schedule })
+        await models.Schedule.create({ ...schedule })
     }
     scheduleCron('masterCron', '*/15 * * * * *');
 }).catch(function (err) {
