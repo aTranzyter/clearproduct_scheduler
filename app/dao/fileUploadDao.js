@@ -190,16 +190,54 @@ function move_file(status) {
             TIMELOGGER.error(`move_file mkdirSync err: ${err}`);
         }
     }
-    fs.rename(oldpath, newpath, function (err) {
-        if (err) {
-            // res.send(http_util.ERROR.DEFAULT_500)
-        }
-        if (status === ERROR) {
-            // send_err_message(newpath, companyCode);
-        }
-        // res.send(http_util.SUCCESS.DEFAULT_200);
-    });
+    // console.log("old path",oldpath)
+    // console.log("new path",newpath)
+     copy(oldpath,newpath);
+    // fs.rename(oldpath, newpath, function (err) {
+    //     copy(oldpath,newpath);
+    //     if (err.code === 'EXDEV') {
+    //             copy(oldpath,newpath);
+    //         }
+    //     if (err) {
+    //         // res.send(http_util.ERROR.DEFAULT_500)
+    //         copy(oldpath,newpath);
+    //     }
+    //     if (status === ERROR) {
+    //         copy(oldpath,newpath);
+    //         // send_err_message(newpath, companyCode);
+    //     }
+    //     // res.send(http_util.SUCCESS.DEFAULT_200);
+    // });
 }
+function copy(oldPath,newPath) {
+    var readStream = fs.createReadStream(oldPath);
+    var writeStream = fs.createWriteStream(newPath);
+
+    readStream.on('error', function(err){
+        if (err)
+            TIMELOGGER.error(`File Upload read stream error: ${err.message}`)
+
+    });
+    writeStream.on('error', function(err){
+
+        if (err)
+        TIMELOGGER.error(`File Upload write stream error: ${err.message}`)
+
+    });
+
+    readStream.on('close', function () {
+        fs.unlink(oldPath, function(err){
+            if (err)
+                TIMELOGGER.error(`File Upload write stream error: ${err.message}`)
+
+            TIMELOGGER.error(`File deleted after upload`)
+        });
+    });
+
+    readStream.pipe(writeStream);
+}
+
+
 function batch_process_log(error, startTime, statusMessage) {
     var message = null;
     if (statusMessage === ERROR) {
