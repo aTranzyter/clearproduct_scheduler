@@ -21,7 +21,7 @@ const UPDATE_COLUMNS = [
     'routg_rsn_dsc', 'plan_billed_date', 'service_start_date', 'service_end_date', 'service_Line', 'plan_billed_hcpc',
     'assigned_to', 'status', 'is_processed', 'updatedBy', 'note', 'priority_score'];
 
-function upload_data () {
+function upload_data() {
     startTime = new Date();
     if (!fs.existsSync(config.UPLOAD_FILE_PATH)) {
         try {
@@ -41,61 +41,65 @@ function upload_data () {
             if (!files.length) {
                 batch_process_log('No Files Found', startTime, SUCCESS);
             } else {
-                fs.readdirSync(config.UPLOAD_FILE_PATH).forEach(async function (file) {
-                    fileName = file;
-                    let fileLocation = config.UPLOAD_FILE_PATH + file;
-                    console.log(' filePath ', fileLocation);
-                    const result = excelToJson({
-                        sourceFile: fileLocation, // fs.readFileSync return a Buffer
-                        columnToKey: {
-                            '*': '{{columnHeader}}'
-                        },
-                        header: { rows: 1 }
-                    });
-                    if (result) {
-                        let data = [];
-                        let diff;
-                        let sheet = Object.keys(result)[0];
-                        let maxDate = await models.Claim_Summary.findOne({
-                            attributes: [
-                                [models.sequelize.fn('max', models.sequelize.col('plan_remit_date')), 'date']
-                            ],
-                            raw: true
+                try {
+                    fs.readdirSync(config.UPLOAD_FILE_PATH).forEach(async function (file) {
+                        fileName = file;
+                        let fileLocation = config.UPLOAD_FILE_PATH + file;
+                        console.log(' filePath ', fileLocation);
+                        const result = excelToJson({
+                            sourceFile: fileLocation, // fs.readFileSync return a Buffer
+                            columnToKey: {
+                                '*': '{{columnHeader}}'
+                            },
+                            header: { rows: 1 }
                         });
+                        if (result) {
+                            let data = [];
+                            let diff;
+                            let sheet = Object.keys(result)[0];
+                            let maxDate = await models.Claim_Summary.findOne({
+                                attributes: [
+                                    [models.sequelize.fn('max', models.sequelize.col('plan_remit_date')), 'date']
+                                ],
+                                raw: true
+                            });
 
-                        for (let i = 0; i < result[sheet].length; i++) {
-                            let item = {};
-                            for (let j in result[sheet][i]) {
-                                item[j.toLowerCase()] = result[sheet][i][j];
+                            for (let i = 0; i < result[sheet].length; i++) {
+                                let item = {};
+                                for (let j in result[sheet][i]) {
+                                    item[j.toLowerCase()] = result[sheet][i][j];
+                                }
+                                if (maxDate) {
+                                    diff = new Date(item.plan_remit_date) - new Date(maxDate.date)
+                                } else {
+                                    diff = 1;
+                                }
+                                if (item.claim_id && diff > 0) {
+                                    // console.log('item.plan_remit_date ', item.plan_remit_date);
+                                    item.assigned_to = undefined;
+                                    item.status = undefined;
+                                    item.is_processed = false;
+                                    item.note = undefined;
+                                    item.priority_score = undefined;
+                                    item.updatedBy = 'system';
+                                    data.push(item)
+                                }
                             }
-                            if (maxDate) {
-                                diff = new Date(item.plan_remit_date) - new Date(maxDate.date)
+                            if (data.length > 0) {
+                                TIMELOGGER.info(`Total records to insert ${data.length}`)
+                                insert_file_data(data);
                             } else {
-                                diff = 1;
+                                batch_process_log('No New Records Found', startTime, SUCCESS);
+                                move_file(SUCCESS);
                             }
-                            if (item.claim_id && diff > 0) {
-                                // console.log('item.plan_remit_date ', item.plan_remit_date);
-                                item.assigned_to = undefined;
-                                item.status = undefined;
-                                item.is_processed = false;
-                                item.note = undefined;
-                                item.priority_score = undefined;
-                                item.updatedBy = 'system';
-                                data.push(item)
-                            }
-                        }
-                        if (data.length > 0) {
-                            TIMELOGGER.info(`Total records to insert ${data.length}`)
-                            insert_file_data(data);
                         } else {
-                            batch_process_log('No New Records Found', startTime, SUCCESS);
+                            batch_process_log('No Records Found', startTime, SUCCESS);
                             move_file(SUCCESS);
                         }
-                    } else {
-                        batch_process_log('No Records Found', startTime, SUCCESS);
-                        move_file(SUCCESS);
-                    }
-                })
+                    })
+                } catch (err) {
+                    TIMELOGGER.error(`FileUpload Js Err: ${err.message}`)
+                }
             }
         }
     })
@@ -105,7 +109,7 @@ function insert_file_data(data) {
     // eslint-disable-next-line
     let result;
     try {
-        models.sequelize.transaction(async function(t) {
+        models.sequelize.transaction(async function (t) {
             if (data.length > MAX_ROWS_INSERT) {
                 let count = 0;
                 let dataToUpdate = [...data];
@@ -125,15 +129,15 @@ function insert_file_data(data) {
                         batch_process_log(err, startTime, ERROR);
                         move_file(ERROR);
                         TIMELOGGER.error(`Batch Insert ERR: ${err.message}`);
-                        return ;
+                        return;
                     }
                 }
             } else {
                 TIMELOGGER.info(`Insert All at once`);
                 try {
-                let summary_data = unquieData(data, 'claim_id');
-                result = await models.Claim_Summary.bulkCreate(summary_data, { transaction: t, updateOnDuplicate: UPDATE_COLUMNS })
-                await models.Claim_Lines.bulkCreate(data, { transaction: t, updateOnDuplicate: UPDATE_COLUMNS })
+                    let summary_data = unquieData(data, 'claim_id');
+                    result = await models.Claim_Summary.bulkCreate(summary_data, { transaction: t, updateOnDuplicate: UPDATE_COLUMNS })
+                    await models.Claim_Lines.bulkCreate(data, { transaction: t, updateOnDuplicate: UPDATE_COLUMNS })
                 } catch (err) {
                     batch_process_log(err, startTime, ERROR);
                     move_file(ERROR);
@@ -146,14 +150,14 @@ function insert_file_data(data) {
             batch_process_log('Inserted Successfully', startTime, SUCCESS);
             move_file(SUCCESS);
             rank_service.updateClaimLineRanking();
-           // res.status(200).send(result);
+            // res.status(200).send(result);
         });
 
     } catch (err) {
         batch_process_log(err, startTime, ERROR);
         move_file(ERROR);
         TIMELOGGER.error(`FileUploadDao.js/insert_file_data ERR: ${err.message}`)
-       // res.status(500).send(err.msg)
+        // res.status(500).send(err.msg)
     }
 }
 
@@ -192,7 +196,7 @@ function move_file(status) {
     }
     // console.log("old path",oldpath)
     // console.log("new path",newpath)
-     copy(oldpath,newpath);
+    copy(oldpath, newpath);
     // fs.rename(oldpath, newpath, function (err) {
     //     copy(oldpath,newpath);
     //     if (err.code === 'EXDEV') {
@@ -209,24 +213,24 @@ function move_file(status) {
     //     // res.send(http_util.SUCCESS.DEFAULT_200);
     // });
 }
-function copy(oldPath,newPath) {
+function copy(oldPath, newPath) {
     var readStream = fs.createReadStream(oldPath);
     var writeStream = fs.createWriteStream(newPath);
 
-    readStream.on('error', function(err){
+    readStream.on('error', function (err) {
         if (err)
             TIMELOGGER.error(`File Upload read stream error: ${err.message}`)
 
     });
-    writeStream.on('error', function(err){
+    writeStream.on('error', function (err) {
 
         if (err)
-        TIMELOGGER.error(`File Upload write stream error: ${err.message}`)
+            TIMELOGGER.error(`File Upload write stream error: ${err.message}`)
 
     });
 
     readStream.on('close', function () {
-        fs.unlink(oldPath, function(err){
+        fs.unlink(oldPath, function (err) {
             if (err)
                 TIMELOGGER.error(`File Upload write stream error: ${err.message}`)
 
@@ -251,10 +255,10 @@ function batch_process_log(error, startTime, statusMessage) {
         process_status: statusMessage,
         log_message: message
     })
-        .then(function() {
+        .then(function () {
             TIMELOGGER.info(`batch_process_log done successfully`);
         })
-        .catch(function(err) {
+        .catch(function (err) {
             TIMELOGGER.error(`batch_process_log err: ${err}`);
         });
 }
