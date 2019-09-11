@@ -1,9 +1,10 @@
 
 const { sequelize } = require('../models');
+const { database } = require('../config').SQL;
 async function update_color_range() {
-    await sequelize.query(`DROP PROCEDURE IF EXISTS clearcentrix.\`Update_Color_Range\`;`);
+    await sequelize.query(`DROP PROCEDURE IF EXISTS ${database}.\`Update_Color_Range\`;`);
     sequelize.query(`
-            CREATE DEFINER=\`root\`@\`localhost\` PROCEDURE clearcentrix.\`Update_Color_Range\`()
+            CREATE DEFINER=\`root\`@\`localhost\` PROCEDURE ${database}.\`Update_Color_Range\`()
             BEGIN
 
             DECLARE c_done BOOLEAN DEFAULT FALSE;
@@ -14,27 +15,35 @@ async function update_color_range() {
             DECLARE v_limit_start INTEGER DEFAULT 0;
 
             DECLARE base_percent_cursor CURSOR FOR
-            SELECT base_percent, color_hex FROM clearcentrix.Priority_Range;
+            SELECT base_percent, color_hex FROM ${database}.Priority_Range WHERE is_active = 1;
             
             SET SQL_SAFE_UPDATES = 0;	
             
             BEGIN
-            UPDATE clearcentrix.Claim_Summary cs,
+            UPDATE ${database}.Claim_Summary cs,
                 (SELECT
                     claim_id, AVG(priority_score) AS rank1
                 FROM
-                    clearcentrix.Claim_Lines
+                ${database}.Claim_Lines
                 GROUP BY claim_id ) rs
                 SET
                     cs.priority_score = rs.rank1
                 WHERE
+                    cs.is_active = 1 AND
                     cs.claim_id = rs.claim_id ;
             END;
             
             
             BEGIN
             DECLARE CONTINUE HANDLER FOR NOT FOUND SET c_done = TRUE;
-            SELECT COUNT(*) FROM clearcentrix.Claim_Summary INTO v_summary_count;
+            SELECT count(*) FROM ${database}.Claim_Summary cs
+            LEFT JOIN ${database}.Status s
+            on cs.status = s.status_code
+            and cs.is_active =1
+            and s.is_active=1
+            where (s.mark_processed=0
+            or cs.status is null) INTO v_summary_count;
+
             SET @v_limit_start = 0;
             SET @v_limit_end = 0;
 
@@ -48,7 +57,7 @@ async function update_color_range() {
                 SET @v_limit_start = @v_limit_start + @v_limit_end ;
                 SET @v_limit_end  =  round( (v_summary_count * v_base_percent) / 100);
                 
-                SET @sql = CONCAT('UPDATE Claim_Summary cs, (SELECT claim_id FROM Claim_Summary order by priority_score desc limit ?, ? ) rt SET cs.color_hex = ', "'", v_color_hex, "'", ' where rt.claim_id = cs.claim_id ');
+                SET @sql = CONCAT('UPDATE Claim_Summary csp, (SELECT claim_id FROM ${database}.Claim_Summary cs LEFT JOIN ${database}.Status s on cs.status = s.status_code and cs.is_active =1 and s.is_active=1 where (s.mark_processed=0 or cs.status is null) order by cs.priority_score desc limit ?, ? ) rt SET csp.color_hex = ', "'", v_color_hex, "'", ' where rt.claim_id = csp.claim_id ');
             
                 
                 PREPARE stmt FROM @sql;
