@@ -56,7 +56,7 @@ function upload_data () {
                         let data = [];
                         let diff;
                         let sheet = Object.keys(result)[0];
-                        let maxDate = await models.Claim_Summary.find({
+                        let maxDate = await models.Claim_Summary.findOne({
                             attributes: [
                                 [models.sequelize.fn('max', models.sequelize.col('plan_remit_date')), 'date']
                             ],
