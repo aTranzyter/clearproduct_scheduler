@@ -4,7 +4,7 @@ const { database, username, host } = require('../config').SQL;
 async function update_color_range() {
     await sequelize.query(`DROP PROCEDURE IF EXISTS ${database}.\`Update_Color_Range\`;`);
     sequelize.query(`
-            CREATE PROCEDURE ${database}.\`Update_Color_Range\`()
+            CREATE  PROCEDURE ${database}.\`Update_Color_Range\`()
             BEGIN
 
             DECLARE c_done BOOLEAN DEFAULT FALSE;
