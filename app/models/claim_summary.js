@@ -5,7 +5,7 @@
 
 module.exports = function (Sequelize, Types) {
     var Claim_Summary = Sequelize.define('Claim_Summary', {
-        claim_id: { type: Types.STRING, primaryKey: true },
+        claim_id: { type: Types.STRING, unique: true, primaryKey: true },
         priority_score: { type: Types.DOUBLE },
         is_active: { type: Types.BOOLEAN, defaultValue: true },
         is_processed: { type: Types.BOOLEAN, defaultValue: false },

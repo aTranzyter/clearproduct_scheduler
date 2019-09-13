@@ -1,6 +1,6 @@
 
-const excelToJson = require('convert-excel-to-json');
 const fs = require('fs');
+const csv = require('csvtojson');
 const models = require('../models')
 const config = require('../config');
 const { TIMELOGGER } = require('../winston');
@@ -10,6 +10,7 @@ const SUCCESS = 'success';
 const ERROR = 'error';
 let fileName = '';
 let startTime = '';
+let fileUploadInProgress = false;
 const UPDATE_COLUMNS = [
     'plan_remit_date', 'claim_receipt_date', 'claim_id', 'claim_line_item_control_number',
     'claim_system', 'health_plan', 'carrier_name', 'plan_id', 'plan_type', 'plan_billed_amount',
@@ -22,6 +23,7 @@ const UPDATE_COLUMNS = [
     'assigned_to', 'status', 'is_processed', 'updatedBy', 'note', 'priority_score'];
 
 function upload_data() {
+    TIMELOGGER.info(`CHECKING FOR NEW FILES..`);
     startTime = new Date();
     if (!fs.existsSync(config.UPLOAD_FILE_PATH)) {
         try {
@@ -46,58 +48,266 @@ function upload_data() {
                         fileName = file;
                         let fileLocation = config.UPLOAD_FILE_PATH + file;
                         console.log(' filePath ', fileLocation);
-                        const result = excelToJson({
-                            sourceFile: fileLocation, // fs.readFileSync return a Buffer
-                            columnToKey: {
-                                '*': '{{columnHeader}}'
-                            },
-                            header: { rows: 1 }
+                        let data = [];
+                        let diff;
+                        let maxDate = await models.Claim_Summary.findOne({
+                            attributes: [
+                                [models.sequelize.fn('max', models.sequelize.col('plan_remit_date')), 'date']
+                            ],
+                            raw: true
                         });
-                        if (result) {
-                            let data = [];
-                            let diff;
-                            let sheet = Object.keys(result)[0];
-                            let maxDate = await models.Claim_Summary.findOne({
-                                attributes: [
-                                    [models.sequelize.fn('max', models.sequelize.col('plan_remit_date')), 'date']
-                                ],
-                                raw: true
-                            });
-
-                            for (let i = 0; i < result[sheet].length; i++) {
-                                let item = {};
-                                for (let j in result[sheet][i]) {
-                                    item[j.toLowerCase()] = result[sheet][i][j];
-                                }
-                                if (maxDate) {
-                                    diff = new Date(item.plan_remit_date) - new Date(maxDate.date)
-                                } else {
-                                    diff = 1;
-                                }
-                                if (item.claim_id && diff > 0) {
-                                    // console.log('item.plan_remit_date ', item.plan_remit_date);
-                                    item.assigned_to = undefined;
-                                    item.status = undefined;
-                                    item.is_processed = false;
-                                    item.note = undefined;
-                                    item.priority_score = undefined;
-                                    item.updatedBy = 'system';
-                                    data.push(item)
-                                }
-                            }
-                            if (data.length > 0) {
-                                TIMELOGGER.info(`Total records to insert ${data.length}`)
-                                insert_file_data(data);
-                            } else {
-                                batch_process_log('No New Records Found', startTime, SUCCESS);
-                                move_file(SUCCESS);
-                            }
-                        } else {
-                            batch_process_log('No Records Found', startTime, SUCCESS);
-                            move_file(SUCCESS);
+                        if (fileUploadInProgress) {
+                            return;
                         }
+                        fileUploadInProgress = true;
+                        setTimeout(function() {
+                            if (fileUploadInProgress) {
+                                fileUploadInProgress = false;
+                            }
+                        }, 1000 * 60 * 60)
+                        csv({
+                            delimiter: '|',
+                            colParser: {
+                                // eslint-disable-next-line
+                                "Plan_Billed_Submission_Version": function(item, head, resultRow, row , colIdx) {
+                                   if (item == '' ) {
+                                       return null;
+                                   } else if (isNaN(parseInt(item))) {
+                                    //    TIMELOGGER.error(`Incorrect Value for ${head} ROW: ${JSON.stringify(resultRow)}`)
+                                      return null;
+                                   } else {
+                                       return item;
+                                   }
+                                    // return new Date(item);
+                                },
+                                // eslint-disable-next-line
+                                "Service_Code": function(item, head, resultRow, row , colIdx) {
+                                   if (item == '' ) {
+                                       return null;
+                                   } else if (isNaN(parseInt(item))) {
+                                    //    TIMELOGGER.error(`Incorrect Value for ${head} ROW: ${JSON.stringify(resultRow)}`)
+                                      return null;
+                                   } else {
+                                       return item;
+                                   }
+                                    // return new Date(item);
+                                },
+                                // eslint-disable-next-line
+                                "Provider_Billed_Submission_Version": function(item, head, resultRow, row , colIdx) {
+                                   if (item == '' ) {
+                                       return null;
+                                   } else if (isNaN(parseInt(item))) {
+                                    //    TIMELOGGER.error(`Incorrect Value for ${head} ROW: ${JSON.stringify(resultRow)}`)
+                                      return null;
+                                   } else {
+                                       return item;
+                                   }
+                                    // return new Date(item);
+                                },
+                                // eslint-disable-next-line
+                                "Provider_Remit_Total_Paid_Amount_Total": function(item, head, resultRow, row , colIdx) {
+                                   if (item == '' ) {
+                                       return null;
+                                   } else if (isNaN(parseInt(item))) {
+                                    //    TIMELOGGER.error(`Incorrect Value for ${head} ROW: ${JSON.stringify(resultRow)}`)
+                                      return null;
+                                   } else {
+                                       return item;
+                                   }
+                                    // return new Date(item);
+                                },
+                                // eslint-disable-next-line
+                                "Provider_Billed_Amount_UC": function(item, head, resultRow, row , colIdx) {
+                                   if (item == '' ) {
+                                       return null;
+                                   } else if (isNaN(parseInt(item))) {
+                                    //    TIMELOGGER.error(`Incorrect Value for ${head} ROW: ${JSON.stringify(resultRow)}`)
+                                      return null;
+                                   } else {
+                                       return item;
+                                   }
+                                    // return new Date(item);
+                                },
+                                // eslint-disable-next-line
+                                "Provider_ID": function(item, head, resultRow, row , colIdx) {
+                                   if (item == '' ) {
+                                       return null;
+                                   } else if (isNaN(parseInt(item))) {
+                                    //    TIMELOGGER.error(`Incorrect Value for ${head} ROW: ${JSON.stringify(resultRow)}`)
+                                      return null;
+                                   } else {
+                                       return item;
+                                   }
+                                    // return new Date(item);
+                                },
+                                // eslint-disable-next-line
+                                "Plan_Billed_Modification_Version": function(item, head, resultRow, row , colIdx) {
+                                   if (item == '' ) {
+                                       return null;
+                                   } else if (isNaN(parseInt(item))) {
+                                    //    TIMELOGGER.error(`Incorrect Value for ${head} ROW: ${JSON.stringify(resultRow)}`)
+                                      return null;
+                                   } else {
+                                       return item;
+                                   }
+                                    // return new Date(item);
+                                },
+                                // eslint-disable-next-line
+                                "Claim_System": function(item, head, resultRow, row , colIdx) {
+                                   if (item == '' ) {
+                                       return null;
+                                   } else if (isNaN(parseInt(item))) {
+                                    //    TIMELOGGER.error(`Incorrect Value for ${head} ROW: ${JSON.stringify(resultRow)}`)
+                                      return null;
+                                   } else {
+                                       return item;
+                                   }
+                                    // return new Date(item);
+                                },
+                                // eslint-disable-next-line
+                                "Plan_Remit_Paid_Amount": function(item, head, resultRow, row , colIdx) {
+                                   if (item == '' ) {
+                                       return null;
+                                   } else if (isNaN(parseInt(item))) {
+                                    //    TIMELOGGER.error(`Incorrect Value for ${head} ROW: ${JSON.stringify(resultRow)}`)
+                                      return null;
+                                   } else {
+                                       return item;
+                                   }
+                                    // return new Date(item);
+                                },
+                                // eslint-disable-next-line
+                                "Plan_Billed_Amount": function(item, head, resultRow, row , colIdx) {
+                                   if (item == '' ) {
+                                       return null;
+                                   } else if (isNaN(parseInt(item))) {
+                                    //    TIMELOGGER.error(`Incorrect Value for ${head} ROW: ${JSON.stringify(resultRow)}`)
+                                      return null;
+                                   } else {
+                                       return item;
+                                   }
+                                    // return new Date(item);
+                                },
+                                // eslint-disable-next-line
+                                "Plan_ID": function(item, head, resultRow, row , colIdx) {
+                                   if (item == '' ) {
+                                       return null;
+                                   } else if (isNaN(parseInt(item))) {
+                                    //    TIMELOGGER.error(`Incorrect Value for ${head} ROW: ${JSON.stringify(resultRow)}`)
+                                      return null;
+                                   } else {
+                                       return item;
+                                   }
+                                    // return new Date(item);
+                                },
+                                // eslint-disable-next-line
+                                "Plan_Billed_Date": function(item, head, resultRow, row , colIdx) {
+                                    if (item == '' ) {
+                                        // TIMELOGGER.error(`Incorrect Value For ${head} ROW: ${JSON.stringify(resultRow)}`)
+                                        return null;
+                                    } else {
+                                        return item;
+                                    }
+                                     // return new Date(item);
+                                 },
+                                 // eslint-disable-next-line
+                                 "Service_End_Date": function(item, head, resultRow, row , colIdx) {
+                                    if (item == '' ) {
+                                        // TIMELOGGER.error(`Incorrect Value For ${head} ROW: ${JSON.stringify(resultRow)}`)
+                                        return null;
+                                    } else {
+                                        return item;
+                                    }
+                                     // return new Date(item);
+                                 },
+                                 // eslint-disable-next-line
+                                 "Service_Start_Date": function(item, head, resultRow, row , colIdx) {
+                                    if (item == '' ) {
+                                        // TIMELOGGER.error(`Incorrect Value For ${head} ROW: ${JSON.stringify(resultRow)}`)
+                                        return null;
+                                    } else {
+                                        return item;
+                                    }
+                                     // return new Date(item);
+                                 },
+                                 // eslint-disable-next-line
+                                 "Claim_Receipt_Date": function(item, head, resultRow, row , colIdx) {
+                                    if (item == '' ) {
+                                        // TIMELOGGER.error(`Incorrect Value For ${head} ROW: ${JSON.stringify(resultRow)}`)
+                                        return null;
+                                    } else {
+                                        return item;
+                                    }
+                                     // return new Date(item);
+                                 },
+                                 // eslint-disable-next-line
+                                 "Plan_Remit_Date": function(item, head, resultRow, row , colIdx) {
+                                    if (item == '' ) {
+                                        // TIMELOGGER.error(`Incorrect Value For ${head} ROW: ${JSON.stringify(resultRow)}`)
+                                        return null;
+                                    } else {
+                                        return item;
+                                    }
+                                     // return new Date(item);
+                                 },
+
+                            },
+                            checkType: true
+                        })
+                            .fromFile(fileLocation)
+                            .on('error',function(err) {
+                                fileUploadInProgress = false;
+                                console.log(err);
+                                return;
+                            })
+                            .then(function (result) {
+                                // console.log(result.length);
+                                for (let i = 0; i < result.length; i++) {
+                                    let item = {};
+                                    Object.keys(result[i]).forEach(function(key) {
+                                        item[key.toLowerCase()] = result[i][key];
+                                    });
+                                    
+                                    if (Object.keys(item).length < 43) {
+                                        TIMELOGGER.error(` DATA Missing in a row ROW NUMBER: ${i} ROW: ${JSON.stringify(item)}`)
+                                    }
+                                    if (maxDate && maxDate.date) {
+                                        diff = new Date(item.plan_remit_date) - new Date(maxDate.date)
+                                    } else {
+                                        diff = 1;
+                                    }
+                                    if (item.claim_id && item.claim_line_item_control_number
+                                         && diff > 0 && !(Object.keys(item).length < 43)) {
+                                        // console.log('item.plan_remit_date ', item.plan_remit_date);
+                                        item.assigned_to = undefined;
+                                        item.status = undefined;
+                                        item.is_processed = false;
+                                        item.note = undefined;
+                                        item.priority_score = undefined;
+                                        item.updatedBy = 'system';
+
+                                        data.push(item)
+                                    }
+                                }
+
+                                if (data) {
+                                    if (data.length > 0) {
+                                        TIMELOGGER.info(`Total records to insert ${data.length}`)
+                                        insert_file_data(data);
+                                    } else {
+                                        batch_process_log('No New Records Found', startTime, SUCCESS);
+                                        fileUploadInProgress = false;
+                                        move_file(SUCCESS);
+                                    }
+                                } else {
+                                    batch_process_log('No Records Found', startTime, SUCCESS);
+                                    fileUploadInProgress = false;
+                                    move_file(SUCCESS);
+                                }
+                            })
                     })
                 } catch (err) {
+                    fileUploadInProgress = false;
                     TIMELOGGER.error(`FileUpload Js Err: ${err.message}`)
                 }
             }
@@ -122,11 +332,12 @@ function insert_file_data(data) {
                         let dataToInsert = dataToUpdate.splice(0, MAX_ROWS_INSERT);
                         let summary_data = unquieData(dataToInsert, 'claim_id');
                         await models.Claim_Summary.bulkCreate(summary_data, { transaction: t, updateOnDuplicate: UPDATE_COLUMNS })
-                        models.Claim_Lines.bulkCreate(dataToInsert, { transaction: t, updateOnDuplicate: UPDATE_COLUMNS })
+                        await models.Claim_Lines.bulkCreate(dataToInsert, { transaction: t, updateOnDuplicate: UPDATE_COLUMNS })
                         TIMELOGGER.info(`total completed ${count * MAX_ROWS_INSERT}`);
                         count++;
                     } catch (err) {
                         batch_process_log(err, startTime, ERROR);
+                        fileUploadInProgress = false;
                         move_file(ERROR);
                         TIMELOGGER.error(`Batch Insert ERR: ${err.message}`);
                         return;
@@ -140,6 +351,7 @@ function insert_file_data(data) {
                     await models.Claim_Lines.bulkCreate(data, { transaction: t, updateOnDuplicate: UPDATE_COLUMNS })
                 } catch (err) {
                     batch_process_log(err, startTime, ERROR);
+                    fileUploadInProgress = false;
                     move_file(ERROR);
                     TIMELOGGER.error(`Insert All at once ERR: ${err.message}`);
                     return;
@@ -147,6 +359,7 @@ function insert_file_data(data) {
                 }
             }
             TIMELOGGER.info(`Data Insert Success.. Starting Ranking..`);
+            fileUploadInProgress = false;
             batch_process_log('Inserted Successfully', startTime, SUCCESS);
             move_file(SUCCESS);
             rank_service.updateClaimLineRanking();
@@ -155,6 +368,7 @@ function insert_file_data(data) {
 
     } catch (err) {
         batch_process_log(err, startTime, ERROR);
+        fileUploadInProgress = false;
         move_file(ERROR);
         TIMELOGGER.error(`FileUploadDao.js/insert_file_data ERR: ${err.message}`)
         // res.status(500).send(err.msg)

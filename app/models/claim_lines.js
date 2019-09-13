@@ -5,7 +5,7 @@
  */
 module.exports = function (Sequlize, Types) {
     var Claim_Lines = Sequlize.define('Claim_Lines', {
-        claim_line_item_control_number: { type: Types.STRING, primaryKey: true },
+        claim_line_item_control_number: { type: Types.STRING, unique: true, primaryKey: true },
         // claim_id: { type: Types.INTEGER, references: { model: 'Claim_Summary', key: 'claim_id' } },
         claim_system: { type: Types.INTEGER },
         patient_number: { type: Types.STRING },
@@ -41,7 +41,7 @@ module.exports = function (Sequlize, Types) {
         plan_remit_rarc_5: { type: Types.STRING },
         plan_remit_rarc_6: { type: Types.STRING },
         // routg_rsn_dsc: { type: Types.STRING },
-        plan_billed_date: { type: Types.DATE },
+        plan_billed_date: { type: Types.DATE, allow: null },
         service_start_date: { type: Types.DATE },
         service_end_date: { type: Types.DATE },
         service_line: { type: Types.STRING },

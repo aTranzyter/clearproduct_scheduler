@@ -5,8 +5,7 @@
   },
   "dependencies": {
     "async": "^3.1.0",
-    "convert-excel-to-json": "^1.6.1",
-    "csvtojson": "^2.0.8",
+    "csvtojson": "^2.0.10",
     "express": "^4.16.4",
     "formidable": "^1.2.1",
     "mysql": "^2.9.0",

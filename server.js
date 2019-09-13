@@ -67,10 +67,10 @@ function processMasterCron() {
                     if (cronRunning[code] && cronRunning[code + INTERVAL] !== interval) {
                         cronRunning[code].destroy();
                     }
-                    console.log(' SCHEDULE CRON *********')
+                    // console.log(' SCHEDULE CRON *********')
                     scheduleCron(code, interval);
                 } else {
-                    console.log(' CONTINUE ')
+                    // console.log(' CONTINUE ')
                 }
             })
             // console.log('master cron ', Object.keys(cronRunning));
