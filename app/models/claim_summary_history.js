@@ -5,7 +5,7 @@
 
 module.exports = function (Sequelize, Types) {
     var Claim_Summary_History = Sequelize.define('Claim_Summary_History', {
-        claim_id: { type: Types.INTEGER },
+        claim_id: { type: Types.STRING },
         assigned_to: { type: Types.STRING },
         status: { type: Types.STRING },
         priority_score: { type: Types.DOUBLE },
