@@ -97,7 +97,7 @@ models.sequelize.sync().then(async function () {
     update_color_range();
     console.log('server running on port ' + port);
     let schedule = {
-        second: '0', minute: '*', hour: '*',
+        second: '0', minute: '0', hour: '*',
         day_of_month: '*', month: '*', day_of_week: '*'
     }
     let count = await models.Schedule.count();
@@ -106,6 +106,7 @@ models.sequelize.sync().then(async function () {
         await models.Schedule.create({ ...schedule })
     }
     scheduleCron('masterCron', '*/15 * * * * *');
+    fileUploadRoute.upload_data();
 }).catch(function (err) {
     console.log(' SEQUEL ERR ', err);
 });
