@@ -56,6 +56,8 @@ function upload_data() {
                             ],
                             raw: true
                         });
+                        let futureDate = new Date();
+                        futureDate.setDate(futureDate.getDate() + 1);
                         if (fileUploadInProgress) {
                             return;
                         }
@@ -271,7 +273,20 @@ function upload_data() {
                                     if (Object.keys(item).length < 43) {
                                         TIMELOGGER.error(` DATA Missing in a row ROW NUMBER: ${i} ROW: ${JSON.stringify(item)}`)
                                     }
-                                    if (maxDate && maxDate.date) {
+                                    if (new Date(item.plan_remit_date) > futureDate) {
+                                        let claimIdTemp = item.claim_id;
+                                        let claimLineTemp = item.claim_line_item_control_number;
+                                        let subtractFactor = 4
+                                        let claimIdLength =  claimIdTemp.length;
+                                        let claimLineLength = claimLineTemp.length;
+                                        let claimId = claimIdTemp.slice(0, claimIdLength - subtractFactor)
+                                                        .replace(/[\d\w]/g,'*') + claimIdTemp.substr(claimIdLength - subtractFactor); 
+                                        let claimLineId = claimLineTemp.slice(0, claimLineLength - subtractFactor)
+                                                        .replace(/[\d\w]/g,'*') + claimLineTemp.substr(claimLineLength - subtractFactor); 
+                                        
+                                        TIMELOGGER.error(`Future Date Data: plan_Remit_Date: ${item.plan_remit_date}, Claim_ID: ${claimId}, Claim_Line_Item_Control_Number: ${claimLineId}, index: ${i}`)
+                                        diff = 0;
+                                    } else if (maxDate && maxDate.date) {
                                         diff = new Date(item.plan_remit_date) - new Date(maxDate.date)
                                     } else {
                                         diff = 1;
