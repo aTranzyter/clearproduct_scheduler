@@ -274,29 +274,19 @@ function upload_data() {
                                         TIMELOGGER.error(` DATA Missing in a row ROW NUMBER: ${i} ROW: ${JSON.stringify(item)}`)
                                     }
                                     if (new Date(item.plan_remit_date) > futureDate) {
-                                        let claimIdTemp = item.claim_id;
-                                        let claimLineTemp = item.claim_line_item_control_number;
-                                        let subtractFactor = 4
-                                        let claimIdLength =  claimIdTemp.length;
-                                        let claimLineLength = claimLineTemp.length;
-                                        let claimId = claimIdTemp.slice(0, claimIdLength - subtractFactor)
-                                                        .replace(/[\d\w]/g,'*') + claimIdTemp.substr(claimIdLength - subtractFactor); 
-                                        let claimLineId = claimLineTemp.slice(0, claimLineLength - subtractFactor)
-                                                        .replace(/[\d\w]/g,'*') + claimLineTemp.substr(claimLineLength - subtractFactor); 
-                                        
+                                        let { claimId, claimLineId} = getMaskedIds(item);
                                         TIMELOGGER.error(`Future Date Data: plan_Remit_Date: ${item.plan_remit_date}, Claim_ID: ${claimId}, Claim_Line_Item_Control_Number: ${claimLineId}, index: ${i}`)
                                         diff = 0;
                                     } else if (item.plan_billed_amount == null) {
-                                        let claimIdTemp = item.claim_id;
-                                        let claimLineTemp = item.claim_line_item_control_number;
-                                        let subtractFactor = 4
-                                        let claimIdLength =  claimIdTemp.length;
-                                        let claimLineLength = claimLineTemp.length;
-                                        let claimId = claimIdTemp.slice(0, claimIdLength - subtractFactor)
-                                                        .replace(/[\d\w]/g,'*') + claimIdTemp.substr(claimIdLength - subtractFactor); 
-                                        let claimLineId = claimLineTemp.slice(0, claimLineLength - subtractFactor)
-                                                        .replace(/[\d\w]/g,'*') + claimLineTemp.substr(claimLineLength - subtractFactor); 
+                                        let { claimId, claimLineId} = getMaskedIds(item);
                                         TIMELOGGER.error(`Plan_Billed_Amount Null: Row: ${i}, Plan_Billed_Amount: ${item.plan_billed_amount}, Claim_ID: ${claimId}, Claim_Line_Item_Control_Number: ${claimLineId}`)
+                                        diff = 0;
+                                    } else if ( item.plan_remit_carc_1 === 'CO24' || item.plan_remit_carc_2 === 'CO24' ||
+                                                item.plan_remit_carc_3 === 'CO24' || item.plan_remit_carc_4 === 'CO24' ||
+                                                item.plan_remit_carc_5 === 'CO24' || item.plan_remit_carc_6 === 'CO24'
+                                    ) {
+                                        let { claimId, claimLineId} = getMaskedIds(item);
+                                        TIMELOGGER.error(`plan_remit_carc Error: claim_id: ${claimId} claim_line_id: ${claimLineId} Row: ${i}`)
                                         diff = 0;
                                     } else if (maxDate && maxDate.date) {
                                         diff = new Date(item.plan_remit_date) - new Date(maxDate.date)
@@ -342,6 +332,18 @@ function upload_data() {
     })
 }
 
+function getMaskedIds(item) {
+    let claimIdTemp = item.claim_id;
+    let claimLineTemp = item.claim_line_item_control_number;
+    let subtractFactor = 4
+    let claimIdLength =  claimIdTemp.length;
+    let claimLineLength = claimLineTemp.length;
+    let claimId = claimIdTemp.slice(0, claimIdLength - subtractFactor)
+                    .replace(/[\d\w]/g,'*') + claimIdTemp.substr(claimIdLength - subtractFactor); 
+    let claimLineId = claimLineTemp.slice(0, claimLineLength - subtractFactor)
+                    .replace(/[\d\w]/g,'*') + claimLineTemp.substr(claimLineLength - subtractFactor);
+    return {claimId, claimLineId};
+}
 function insert_file_data(data) {
     // eslint-disable-next-line
     let result;
