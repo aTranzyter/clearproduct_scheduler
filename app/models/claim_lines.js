@@ -80,7 +80,13 @@ module.exports = function (Sequlize, Types) {
             models.Claim_Lines.belongsTo(models.Assignee, {
                 foreignKey: 'updatedBy',
                 targetKey: 'user_id'
-            })
+            });
+            models.Claim_Lines.belongsTo(models.Provider_Crosswalk_Map, {
+                targetKey: 'provider_id',
+                foreignKey: 'provider_id',
+                constraints: false,
+                as: 'Provider_Crosswalk_Map'
+            });
         }
     return Claim_Lines;
 };
