@@ -338,8 +338,8 @@ function upload_data() {
 
 function getMaskedIds(item) {
     try {
-        let claimIdTemp = item.claim_id;
-        let claimLineTemp = item.claim_line_item_control_number;
+        let claimIdTemp = (item.claim_id).toString();
+        let claimLineTemp = (item.claim_line_item_control_number).toString();
         let subtractFactor = 4
         let claimIdLength =  claimIdTemp.length;
         let claimLineLength = claimLineTemp.length;
