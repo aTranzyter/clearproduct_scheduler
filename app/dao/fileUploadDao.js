@@ -278,19 +278,19 @@ function upload_data() {
                                         TIMELOGGER.error(`ROW or claim_id or claim_line_item_control_number is undefined ROW:${i}`)
                                         diff = 0;
                                     } else if (new Date(item.plan_remit_date) > futureDate) {
-                                        let { claimId, claimLineId} = getMaskedIds(item);
-                                        TIMELOGGER.error(`Future Date Data: plan_Remit_Date: ${item.plan_remit_date}, Claim_ID: ${claimId}, Claim_Line_Item_Control_Number: ${claimLineId}, index: ${i}`)
+                                        // let { claimId, claimLineId} = getMaskedIds(item);
+                                        TIMELOGGER.error(`Future Date Data: plan_Remit_Date: ${item.plan_remit_date}, index: ${i}`)
                                         diff = 0;
                                     } else if (item.plan_billed_amount == null) {
-                                        let { claimId, claimLineId} = getMaskedIds(item);
-                                        TIMELOGGER.error(`Plan_Billed_Amount Null: Row: ${i}, Plan_Billed_Amount: ${item.plan_billed_amount}, Claim_ID: ${claimId}, Claim_Line_Item_Control_Number: ${claimLineId}`)
+                                        // let { claimId, claimLineId} = getMaskedIds(item);
+                                        TIMELOGGER.error(`Plan_Billed_Amount Null: Row: ${i}, Plan_Billed_Amount: ${item.plan_billed_amount}`)
                                         diff = 0;
                                     } else if ( item.plan_remit_carc_1 === 'CO24' || item.plan_remit_carc_2 === 'CO24' ||
                                                 item.plan_remit_carc_3 === 'CO24' || item.plan_remit_carc_4 === 'CO24' ||
                                                 item.plan_remit_carc_5 === 'CO24' || item.plan_remit_carc_6 === 'CO24'
                                     ) {
-                                        let { claimId, claimLineId} = getMaskedIds(item);
-                                        TIMELOGGER.error(`plan_remit_carc Error: claim_id: ${claimId} claim_line_id: ${claimLineId} Row: ${i}`)
+                                        // let { claimId, claimLineId} = getMaskedIds(item);
+                                        TIMELOGGER.error(`plan_remit_carc Error: claim_id: Row: ${i}`)
                                         diff = 0;
                                     } else if (maxDate && maxDate.date) {
                                         diff = new Date(item.plan_remit_date) - new Date(maxDate.date)
@@ -336,6 +336,7 @@ function upload_data() {
     })
 }
 
+// eslint-disable-next-line
 function getMaskedIds(item) {
     try {
         let claimIdTemp = (item.claim_id).toString();
