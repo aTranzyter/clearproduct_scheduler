@@ -48,6 +48,7 @@ function upload_data() {
                         fileName = file;
                         let fileLocation = config.UPLOAD_FILE_PATH + file;
                         console.log(' filePath ', fileLocation);
+                        TIMELOGGER.info(`filepath: ${fileLocation}`);
                         let data = [];
                         let diff;
                         let maxDate = await models.Claim_Summary.findOne({
@@ -272,8 +273,11 @@ function upload_data() {
                                     
                                     if (Object.keys(item).length < 43) {
                                         TIMELOGGER.error(` DATA Missing in a row ROW NUMBER: ${i} ROW: ${JSON.stringify(item)}`)
-                                    }
-                                    if (new Date(item.plan_remit_date) > futureDate) {
+                                        diff = 0;
+                                    } else if (!item || !item.claim_id || !item.claim_line_item_control_number) {
+                                        TIMELOGGER.error(`ROW or claim_id or claim_line_item_control_number is undefined ROW:${i}`)
+                                        diff = 0;
+                                    } else if (new Date(item.plan_remit_date) > futureDate) {
                                         let { claimId, claimLineId} = getMaskedIds(item);
                                         TIMELOGGER.error(`Future Date Data: plan_Remit_Date: ${item.plan_remit_date}, Claim_ID: ${claimId}, Claim_Line_Item_Control_Number: ${claimLineId}, index: ${i}`)
                                         diff = 0;
@@ -333,16 +337,21 @@ function upload_data() {
 }
 
 function getMaskedIds(item) {
-    let claimIdTemp = item.claim_id;
-    let claimLineTemp = item.claim_line_item_control_number;
-    let subtractFactor = 4
-    let claimIdLength =  claimIdTemp.length;
-    let claimLineLength = claimLineTemp.length;
-    let claimId = claimIdTemp.slice(0, claimIdLength - subtractFactor)
-                    .replace(/[\d\w]/g,'*') + claimIdTemp.substr(claimIdLength - subtractFactor); 
-    let claimLineId = claimLineTemp.slice(0, claimLineLength - subtractFactor)
-                    .replace(/[\d\w]/g,'*') + claimLineTemp.substr(claimLineLength - subtractFactor);
-    return {claimId, claimLineId};
+    try {
+        let claimIdTemp = item.claim_id;
+        let claimLineTemp = item.claim_line_item_control_number;
+        let subtractFactor = 4
+        let claimIdLength =  claimIdTemp.length;
+        let claimLineLength = claimLineTemp.length;
+        let claimId = claimIdTemp.slice(0, claimIdLength - subtractFactor)
+                        .replace(/[\d\w]/g,'*') + claimIdTemp.substr(claimIdLength - subtractFactor); 
+        let claimLineId = claimLineTemp.slice(0, claimLineLength - subtractFactor)
+                        .replace(/[\d\w]/g,'*') + claimLineTemp.substr(claimLineLength - subtractFactor);
+        return {claimId, claimLineId};
+    } catch(err) {
+        TIMELOGGER.error(`ERROR IN getMaskedIds ERROR: ${err.message}`)
+        return {claimId: '', claimLineId:''};
+    }
 }
 function insert_file_data(data) {
     // eslint-disable-next-line
