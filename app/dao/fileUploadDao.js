@@ -50,13 +50,21 @@ function upload_data() {
                         console.log(' filePath ', fileLocation);
                         TIMELOGGER.info(`filepath: ${fileLocation}`);
                         let data = [];
+                        let errOutRowsCount = 0;
+                        let remitOutCount = 0;
+                        let fileMaxDate;
+                        let databaseMaxDate;
                         let diff;
                         let maxDate = await models.Claim_Summary.findOne({
+                            where: { is_active: true },
                             attributes: [
                                 [models.sequelize.fn('max', models.sequelize.col('plan_remit_date')), 'date']
                             ],
                             raw: true
                         });
+                        if (maxDate && maxDate.date) {
+                            databaseMaxDate = new Date(maxDate.date);
+                        }
                         let futureDate = new Date();
                         futureDate.setDate(futureDate.getDate() + 1);
                         if (fileUploadInProgress) {
@@ -272,16 +280,20 @@ function upload_data() {
                                     });
                                     
                                     if (Object.keys(item).length < 43) {
+                                        errOutRowsCount++;
                                         TIMELOGGER.error(` DATA Missing in a row ROW NUMBER: ${i} ROW: ${JSON.stringify(item)}`)
                                         diff = 0;
                                     } else if (!item || !item.claim_id || !item.claim_line_item_control_number) {
+                                        errOutRowsCount++;
                                         TIMELOGGER.error(`ROW or claim_id or claim_line_item_control_number is undefined ROW:${i}`)
                                         diff = 0;
                                     } else if (new Date(item.plan_remit_date) > futureDate) {
+                                        errOutRowsCount++;
                                         // let { claimId, claimLineId} = getMaskedIds(item);
                                         TIMELOGGER.error(`Future Date Data: plan_Remit_Date: ${item.plan_remit_date}, index: ${i}`)
                                         diff = 0;
                                     } else if (item.plan_billed_amount == null) {
+                                        errOutRowsCount++;
                                         // let { claimId, claimLineId} = getMaskedIds(item);
                                         TIMELOGGER.error(`Plan_Billed_Amount Null: Row: ${i}, Plan_Billed_Amount: ${item.plan_billed_amount}`)
                                         diff = 0;
@@ -290,10 +302,28 @@ function upload_data() {
                                                 item.plan_remit_carc_5 === 'CO24' || item.plan_remit_carc_6 === 'CO24'
                                     ) {
                                         // let { claimId, claimLineId} = getMaskedIds(item);
+                                        errOutRowsCount++;
                                         TIMELOGGER.error(`plan_remit_carc Error: claim_id: Row: ${i}`)
                                         diff = 0;
                                     } else if (maxDate && maxDate.date) {
-                                        diff = new Date(item.plan_remit_date) - new Date(maxDate.date)
+                                        if (!item.plan_remit_date) {
+                                            errOutRowsCount++;
+                                            TIMELOGGER.error(`Plan_Remit_Date Null ROW: ${i}`);
+                                            diff = 0;
+                                        } else {
+                                            diff = new Date(item.plan_remit_date) - new Date(maxDate.date);
+                                            if (!fileMaxDate) {
+                                                fileMaxDate = new Date(item.plan_remit_date);
+                                            } else {
+                                                if (new Date(item.plan_remit_date) > fileMaxDate) {
+                                                    fileMaxDate = new Date(item.plan_remit_date);
+                                                }
+                                            }
+                                            if (diff < 1) {
+                                                remitOutCount++;
+                                            }
+                                        }
+
                                     } else {
                                         diff = 1;
                                     }
@@ -311,11 +341,21 @@ function upload_data() {
                                     }
                                 }
 
+                                TIMELOGGER.info(`************* STATUS ************ \n`)
+                                TIMELOGGER.info(`MAX Plan_Remit_Date DATABASE: ${databaseMaxDate}`);
+                                TIMELOGGER.info(`MAX Plan_Remit_Date FILE: ${fileMaxDate}`);
+                                TIMELOGGER.info(`Total Rows in a File: ${result.length}`);
+                                TIMELOGGER.info(`Total error out Rows: ${errOutRowsCount}`);
+                                TIMELOGGER.info(`Total RemitOut Rows: ${remitOutCount}`);
+                                TIMELOGGER.info(`Total rows eligible for insertion: ${data.length}\n`);
+                                TIMELOGGER.info(`************* STATUS ************`);
+
                                 if (data) {
                                     if (data.length > 0) {
                                         TIMELOGGER.info(`Total records to insert ${data.length}`)
                                         insert_file_data(data);
                                     } else {
+                                        TIMELOGGER.info(`No New Records Found Ranking will not be Called`);
                                         batch_process_log('No New Records Found', startTime, SUCCESS);
                                         fileUploadInProgress = false;
                                         move_file(SUCCESS);
@@ -509,7 +549,7 @@ function batch_process_log(error, startTime, statusMessage) {
         log_message: message
     })
         .then(function () {
-            TIMELOGGER.info(`batch_process_log done successfully`);
+            TIMELOGGER.info(`batch_process_log done successfully STATUS: ${statusMessage} MESSAGE: ${message}`);
         })
         .catch(function (err) {
             TIMELOGGER.error(`batch_process_log err: ${err}`);
