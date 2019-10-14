@@ -14,7 +14,7 @@
     "nodemon": "^1.18.5",
     "sequelize": "^5.18.4",
     "winston": "^3.0.0",
-    "winston-daily-rotate-file": "^3.3.0"
+    "winston-daily-rotate-file": "^4.2.1"
   },
   "devDependencies": {
     "eslint": "^6.0.1"

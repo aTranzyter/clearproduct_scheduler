@@ -2,7 +2,9 @@ const winston = require('winston');
 const config = require('./config');
 const fs = require('fs');
 
+// eslint-disable-next-line
 const { createLogger, format, transports } = require('winston');
+// eslint-disable-next-line
 const { combine, timestamp, label, printf } = format;
 require('winston-daily-rotate-file');
 const myFormat = printf(info => {
@@ -13,24 +15,30 @@ const myFormat = printf(info => {
 // console.log('log file path is ',config.LOG_FILE_PATH);
 
 var transport = new (winston.transports.DailyRotateFile)({
-    filename: 'application-%DATE%.log',
+    filename: 'scheduler-service-%DATE%',
     dirname:config.LOG_FILE_PATH,
-    // datePattern: 'YYYY-MM-DD', // default to Every day.
+    datePattern: 'YYYY-MM-DD', // default to Every day.
+    createSymlink: true,
+    extension: '.log',
+    symlinkName: 'scheduler-service.log',
     zippedArchive: false,
     maxSize: '20m',
     maxFiles: '14d'
 });
 
 var transportError = new (winston.transports.DailyRotateFile)({
-    filename: 'application-error-%DATE%.log',
+    filename: 'scheduler-error-%DATE%',
     dirname:config.LOG_FILE_PATH,
     // datePattern: 'YYYY-MM-DD', // default to Every day.
     zippedArchive: false,
+    createSymlink: true,
+    extension: '.log',
+    symlinkName: 'scheduler-service-error.log',
     level: 'error',
     maxSize: '20m',
     maxFiles: '14d'
 });
-
+// eslint-disable-next-line
 transport.on('rotate', function(oldFilename, newFilename) {
     // do something fun
     //console.log('oldFileName ', oldFilename, ' NewFileName ', newFilename);
