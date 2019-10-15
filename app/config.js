@@ -19,8 +19,8 @@ exports.ENVIRON = ENVIRON;
 exports.SQL = {
   "username": process.env.DB_USERNAME || "root",
   //"password": "process.env.SQL_PASSWORD",
-  "password": process.env.DB_PASSWORD || "password",
-  "database": process.env.DB_NAME ||"clearcentrix",
+  "password": process.env.DB_PASSWORD || "",
+  "database": process.env.DB_NAME ||"clear_centrix",
   "host": process.env.DB_HOST||"localhost",
   // "host":"localhost",
   // "host": "host.docker.internal", // for docker image
@@ -33,6 +33,7 @@ exports.TOKENHEADER = 'x-access-token';
 exports.UPLOAD_FILE_PATH = process.env.UPLOAD_FILE_PATH || '/Users/mac/git/upload_file/';
 exports.UPLOAD_BKUP_FILE_PATH = process.env.UPLOAD_BKUP_FILE_PATH || '/Users/mac/git/upload_file_backup/';
 exports.LOG_FILE_PATH = process.env.LOG_FOLDER||'../clearproduct_scheduler_log/';
+exports.ERROR_FILE_PATH = process.env.ERROR_FILE_PATH || '../scheduler_error_data/';
 exports.RANK_SERVICE_HOST = process.env.RANK_SERVICE_HOST||'localhost';
 exports.RANK_SERVICE_PORT = process.env.RANK_SERVICE_PORT||5000;
 exports.RANK_SERVICE_PATH = process.env.RANK_SERVICE_PATH||'/rank';

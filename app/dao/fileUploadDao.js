@@ -51,6 +51,8 @@ function upload_data() {
                         TIMELOGGER.info(`filepath: ${fileLocation}`);
                         let data = [];
                         let errOutRowsCount = 0;
+                        let headerRow = [];
+                        let errOutRows = []; 
                         let remitOutCount = 0;
                         let fileMaxDate;
                         let databaseMaxDate;
@@ -277,23 +279,30 @@ function upload_data() {
                                     let item = {};
                                     Object.keys(result[i]).forEach(function(key) {
                                         item[key.toLowerCase()] = result[i][key];
+                                        if (i === 0) {
+                                            headerRow.push(key);
+                                        }
                                     });
                                     
                                     if (Object.keys(item).length < 43) {
                                         errOutRowsCount++;
+                                        errOutRows.push(result[i]);
                                         TIMELOGGER.error(` DATA Missing in a row ROW NUMBER: ${i} ROW: ${JSON.stringify(item)}`)
                                         diff = 0;
                                     } else if (!item || !item.claim_id || !item.claim_line_item_control_number) {
                                         errOutRowsCount++;
+                                        errOutRows.push(result[i]);
                                         TIMELOGGER.error(`ROW or claim_id or claim_line_item_control_number is undefined ROW:${i}`)
                                         diff = 0;
                                     } else if (new Date(item.plan_remit_date) > futureDate) {
                                         errOutRowsCount++;
+                                        errOutRows.push(result[i]);
                                         // let { claimId, claimLineId} = getMaskedIds(item);
                                         TIMELOGGER.error(`Future Date Data: plan_Remit_Date: ${item.plan_remit_date}, index: ${i}`)
                                         diff = 0;
                                     } else if (item.plan_billed_amount == null) {
                                         errOutRowsCount++;
+                                        errOutRows.push(result[i]);
                                         // let { claimId, claimLineId} = getMaskedIds(item);
                                         TIMELOGGER.error(`Plan_Billed_Amount Null: Row: ${i}, Plan_Billed_Amount: ${item.plan_billed_amount}`)
                                         diff = 0;
@@ -303,11 +312,13 @@ function upload_data() {
                                     ) {
                                         // let { claimId, claimLineId} = getMaskedIds(item);
                                         errOutRowsCount++;
+                                        errOutRows.push(result[i]);
                                         TIMELOGGER.error(`plan_remit_carc Error: claim_id: Row: ${i}`)
                                         diff = 0;
                                     } else if (maxDate && maxDate.date) {
                                         if (!item.plan_remit_date) {
                                             errOutRowsCount++;
+                                            errOutRows.push(result[i]);
                                             TIMELOGGER.error(`Plan_Remit_Date Null ROW: ${i}`);
                                             diff = 0;
                                         } else {
@@ -340,7 +351,9 @@ function upload_data() {
                                         data.push(item)
                                     }
                                 }
-
+                                if (errOutRowsCount > 0) {
+                                    writeErrorOutData(headerRow, errOutRows, fileName);
+                                }
                                 TIMELOGGER.info(`************* STATUS ************ \n`)
                                 TIMELOGGER.info(`MAX Plan_Remit_Date DATABASE: ${databaseMaxDate}`);
                                 TIMELOGGER.info(`MAX Plan_Remit_Date FILE: ${fileMaxDate}`);
@@ -374,6 +387,58 @@ function upload_data() {
             }
         }
     })
+}
+
+function writeErrorOutData(headerRow, data, fileName) {
+    if (!fs.existsSync(config.ERROR_FILE_PATH)) {
+        try {
+            fs.mkdirSync(config.ERROR_FILE_PATH);
+        } catch (err) {
+            return TIMELOGGER.error(`ERROR Creating Folder Path for ERROR OUT DATA: ${err.message}`)
+        }
+    }
+    try {
+        let file = fileName;
+        let filePrefix = file.slice(0, file.lastIndexOf('.'));
+        let fileSuffix = file.slice(file.lastIndexOf('.'), file.length);
+        let newPath = `${config.ERROR_FILE_PATH}${filePrefix}_ERROR_${fileSuffix}`
+        let stringToInsert = '';
+        if (headerRow && headerRow.length > 0) {
+            headerRow.forEach(function (item) {
+                stringToInsert += item + '|'
+            });
+            // remove extra pipe at end
+            stringToInsert.slice(0, -1);
+            // add next line
+            stringToInsert += '\n';
+        } else {
+            TIMELOGGER.error(`No Header Row Found To Write Error Out Rows.`);
+            return;
+        }
+        if (data && data.length > 0) {
+            data.forEach(function (item) {
+                let obj = { ...item };
+                headerRow.forEach(function (key) {
+                    stringToInsert += obj[key] + '|';
+                });
+                // remove extra pipe at end
+                stringToInsert.slice(0, -1);
+                // add next line
+                stringToInsert += '\n';
+            });
+        }
+        fs.writeFile(newPath, stringToInsert, function (err) {
+            if (err) {
+                console.log(' err ', err);
+                TIMELOGGER.error(`Error Data writing error: ${err.message}`);
+                return;
+            }
+            console.log(' SAVED. ');
+            TIMELOGGER.info(`ERROR DATA WRITE SUCCEEFUL! `);
+        });
+    } catch (err) {
+        TIMELOGGER.error(`writeErrorOutData ERROR: ${err.message}`)
+    }
 }
 
 // eslint-disable-next-line
