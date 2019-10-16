@@ -18,25 +18,25 @@ var transport = new (winston.transports.DailyRotateFile)({
     filename: 'scheduler-service-%DATE%',
     dirname:config.LOG_FILE_PATH,
     datePattern: 'YYYY-MM-DD', // default to Every day.
-    createSymlink: true,
     extension: '.log',
-    symlinkName: 'scheduler-service.log',
-    zippedArchive: false,
+    zippedArchive: true,
     maxSize: '20m',
-    maxFiles: '14d'
+    // createSymlink: true,
+    // symlinkName: 'scheduler-service.log',
+    // maxFiles: '14d'
 });
 
 var transportError = new (winston.transports.DailyRotateFile)({
     filename: 'scheduler-error-%DATE%',
     dirname:config.LOG_FILE_PATH,
     // datePattern: 'YYYY-MM-DD', // default to Every day.
-    zippedArchive: false,
-    createSymlink: true,
+    zippedArchive: true,
     extension: '.log',
-    symlinkName: 'scheduler-service-error.log',
     level: 'error',
     maxSize: '20m',
-    maxFiles: '14d'
+    // createSymlink: true,
+    // symlinkName: 'scheduler-service-error.log',
+    // maxFiles: '14d'
 });
 // eslint-disable-next-line
 transport.on('rotate', function(oldFilename, newFilename) {
