@@ -352,7 +352,7 @@ function upload_data() {
                                     }
                                 }
                                 if (errOutRowsCount > 0) {
-                                    // writeErrorOutData(headerRow, errOutRows, fileName);
+                                    writeErrorOutData(headerRow, errOutRows, fileName);
                                 }
                                 TIMELOGGER.info(`************* STATUS ************ \n`)
                                 TIMELOGGER.info(`MAX Plan_Remit_Date DATABASE: ${databaseMaxDate}`);
