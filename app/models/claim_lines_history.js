@@ -51,7 +51,15 @@ module.exports = function (Sequlize, Types) {
         //status: { type: Types.STRING },
         priority_score: { type: Types.DOUBLE },
         // is_active: { type: Types.BOOLEAN },
-        updatedBy: { type: Types.STRING }
+        updatedBy: { type: Types.STRING },
+
+        claim_form_type: { type: Types.STRING },
+        patient_first_name: { type: Types.STRING },
+        patient_last_name: { type: Types.STRING },
+        patient_subscriber_id: { type: Types.STRING },
+        plan_remit_payer_claim_id: { type: Types.STRING },
+        authorization_id: { type: Types.STRING }
+        
     }, {
             modelName: 'Claim_Lines_History',
 

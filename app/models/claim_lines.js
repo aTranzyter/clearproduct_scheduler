@@ -48,6 +48,13 @@ module.exports = function (Sequlize, Types) {
         service_code: { type: Types.INTEGER },
         plan_billed_hcpc: { type: Types.STRING },
         priority_score: { type: Types.DOUBLE },
+
+        claim_form_type: { type: Types.STRING },
+        patient_first_name: { type: Types.STRING },
+        patient_last_name: { type: Types.STRING },
+        patient_subscriber_id: { type: Types.STRING },
+        plan_remit_payer_claim_id: { type: Types.STRING },
+        authorization_id: { type: Types.STRING }
         // updatedBy: { type: Types.STRING, references: { model: 'Assignee', key: 'user_id' } }
     }, {
             modelName: 'Claim_Lines',
