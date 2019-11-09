@@ -178,6 +178,18 @@ function upload_data() {
                                     // return new Date(item);
                                 },
                                 // eslint-disable-next-line
+                                "Parent_Provider_ID": function(item, head, resultRow, row , colIdx) {
+                                   if (item == '' ) {
+                                       return null;
+                                   } else if (isNaN(parseInt(item))) {
+                                    //    TIMELOGGER.error(`Incorrect Value for ${head} ROW: ${JSON.stringify(resultRow)}`)
+                                      return null;
+                                   } else {
+                                       return item;
+                                   }
+                                    // return new Date(item);
+                                },
+                                // eslint-disable-next-line
                                 "Plan_Remit_Paid_Amount": function(item, head, resultRow, row , colIdx) {
                                    if (item == '' ) {
                                        return null;
@@ -263,8 +275,37 @@ function upload_data() {
                                     }
                                      // return new Date(item);
                                  },
+                                 // eslint-disable-next-line
+                                 "Patient_Number": "string",
+                                 "Health_Plan": "string",
+                                 "Carrier_Name": "string",
+                                 "Plan_Type": "string",
+                                 "Plan_Billed_Net_Status": "string",
+                                 "Plan_Provider_Name": "string",
+                                 "Provider_Name": "string",
+                                 "Provider_Billed_Net_Status": "string",
+                                 "Plan_Billed_CARC_1": "string",
+                                 "Plan_Billed_CARC_2": "string",
+                                 "Plan_Remit_CARC_1": "string",
+                                 "Plan_Remit_CARC_2": "string",
+                                 "Plan_Remit_CARC_3": "string",
+                                 "Plan_Remit_CARC_4": "string",
+                                 "Plan_Remit_CARC_5": "string",
+                                 "Plan_Remit_CARC_6": "string",
+                                 "Plan_Remit_RARC_1": "string",
+                                 "Plan_Remit_RARC_2": "string",
+                                 "Plan_Remit_RARC_3": "string",
+                                 "Plan_Remit_RARC_4": "string",
+                                 "Plan_Remit_RARC_5": "string",
+                                 "Plan_Remit_RARC_6": "string",
+                                 "Service_Line": "string",
+                                 "Plan_Billed_HCPC": "string",
+                                 "Claim_Form_Type": "string",
+                                 "AUTHORIZATION_ID": "string",
+                                 "Plan_Remit_Payer_Claim_ID": "string",
+                                 "Patient_Subscriber_ID": "string",
 
-                            },
+                                    },
                             checkType: true
                         })
                             .fromFile(fileLocation)
@@ -284,7 +325,7 @@ function upload_data() {
                                         }
                                     });
                                     
-                                    if (Object.keys(item).length < 43) {
+                                    if (Object.keys(item).length < 49) {
                                         errOutRowsCount++;
                                         errOutRows.push(result[i]);
                                         TIMELOGGER.error(` DATA Missing in a row ROW NUMBER: ${i} ROW: ${JSON.stringify(item)}`)
@@ -483,7 +524,7 @@ function insert_file_data(data) {
                         batch_process_log(err, startTime, ERROR);
                         fileUploadInProgress = false;
                         move_file(ERROR);
-                        TIMELOGGER.error(`Batch Insert ERR: ${err.message}`);
+                        TIMELOGGER.error(`Batch Insert ERR: ${JSON.stringify(err)}`);
                         return;
                     }
                 }
@@ -497,7 +538,7 @@ function insert_file_data(data) {
                     batch_process_log(err, startTime, ERROR);
                     fileUploadInProgress = false;
                     move_file(ERROR);
-                    TIMELOGGER.error(`Insert All at once ERR: ${err.message}`);
+                    TIMELOGGER.error(`Insert All at once ERR: ${JSON.stringify(err)}`);
                     return;
                     // return res.status(500).send(err.message);
                 }
