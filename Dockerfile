@@ -12,11 +12,13 @@ RUN apk add --no-cache bash
 RUN mkdir log
 RUN mkdir uploads
 RUN mkdir upload_bkup
+Run mkdir scheduler_error_data
 
 
 ENV LOG_FOLDER /home/usr/app/log/
 ENV UPLOAD_FILE_PATH /home/usr/app/uploads/
 ENV UPLOAD_BKUP_FILE_PATH /home/usr/app/upload_bkup/
+ENV ERROR_FILE_PATH /home/usr/app/scheduler_error_data/
 
 
 # Install app dependencies
