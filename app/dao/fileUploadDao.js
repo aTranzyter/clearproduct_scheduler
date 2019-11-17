@@ -20,7 +20,7 @@ const UPDATE_COLUMNS = [
     'provider_billed_submission_version', 'plan_billed_carc_1', 'plan_billed_carc_2', 'plan_remit_carc_1',
     'plan_remit_carc_2', 'plan_remit_carc_3', 'plan_remit_carc_4', 'plan_remit_carc_5', 'plan_remit_carc_6',
     'routg_rsn_dsc', 'plan_billed_date', 'service_start_date', 'service_end_date', 'service_Line', 'plan_billed_hcpc',
-    'assigned_to', 'status', 'is_processed', 'updatedBy', 'note', 'priority_score'];
+    'assigned_to', 'status', 'is_processed', 'updatedAt', 'updatedBy', 'note', 'priority_score'];
 
 function upload_data() {
     TIMELOGGER.info(`CHECKING FOR NEW FILES..`);
