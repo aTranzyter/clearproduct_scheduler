@@ -60,12 +60,13 @@ function upload_data() {
                         let diff;
                         let customDates = await models.Batch_Process.findOne({ where: { process_status: 'upload'}, raw: true });
                         if (customDates && customDates.id) {
+                            // eslint-disable-next-line
                             let updated = await models.Batch_Process.update(
                                 { id: customDates.id, process_status: 'complete' },
                                 { where: { id: customDates.id}});
-                            console.log(' updated ', updated);
+                            // console.log(' updated ', updated);
                         }
-                        console.log(' customDates ', customDates);
+                        // console.log(' customDates ', customDates);
 
                         let maxDate = await models.Claim_Summary.findOne({
                             where: { is_active: true },
@@ -90,8 +91,8 @@ function upload_data() {
                         if (fileUploadInProgress) {
                             return;
                         }
-                        console.log('databaseMaxDate ', databaseMaxDate)
-                        console.log('futureDate ', futureDate)
+                        // console.log('databaseMaxDate ', databaseMaxDate)
+                        // console.log('futureDate ', futureDate)
                         fileUploadInProgress = true;
                         setTimeout(function() {
                             if (fileUploadInProgress) {
@@ -385,8 +386,10 @@ function upload_data() {
                                         } else {
                                             let remitdate = new Date(maxDate.date);
                                             // extend remit out limit to 15 days
-                                            remitdate = remitdate.setDate(remitdate.getDate() - 15);
-                                            remitReferenceDate = new Date(remitdate);
+                                            if (!customDates) {
+                                                remitdate = remitdate.setDate(remitdate.getDate() - 15);
+                                                remitReferenceDate = new Date(remitdate);
+                                            }
                                             diff = new Date(item.plan_remit_date) - remitdate;
                                             if (!fileMaxDate) {
                                                 fileMaxDate = new Date(item.plan_remit_date);
