@@ -58,6 +58,15 @@ function upload_data() {
                         let databaseMaxDate;
                         let remitReferenceDate;
                         let diff;
+                        let customDates = await models.Batch_Process.findOne({ where: { process_status: 'upload'}, raw: true });
+                        if (customDates && customDates.id) {
+                            let updated = await models.Batch_Process.update(
+                                { id: customDates.id, process_status: 'complete' },
+                                { where: { id: customDates.id}});
+                            console.log(' updated ', updated);
+                        }
+                        console.log(' customDates ', customDates);
+
                         let maxDate = await models.Claim_Summary.findOne({
                             where: { is_active: true },
                             attributes: [
@@ -66,13 +75,23 @@ function upload_data() {
                             raw: true
                         });
                         if (maxDate && maxDate.date) {
-                            databaseMaxDate = new Date(maxDate.date);
+                            if (customDates && customDates.start_time) {
+                                databaseMaxDate = new Date(customDates.start_time);
+                                maxDate.date = customDates.start_time;
+                            } else {
+                                databaseMaxDate = new Date(maxDate.date);
+                            }
                         }
                         let futureDate = new Date();
                         futureDate.setDate(futureDate.getDate() + 1);
+                        if (customDates && customDates.end_time) {
+                            futureDate = new Date(customDates.end_time);
+                        }
                         if (fileUploadInProgress) {
                             return;
                         }
+                        console.log('databaseMaxDate ', databaseMaxDate)
+                        console.log('futureDate ', futureDate)
                         fileUploadInProgress = true;
                         setTimeout(function() {
                             if (fileUploadInProgress) {
