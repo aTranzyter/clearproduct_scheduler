@@ -56,6 +56,7 @@ function upload_data() {
                         let remitOutCount = 0;
                         let fileMaxDate;
                         let databaseMaxDate;
+                        let remitReferenceDate;
                         let diff;
                         let maxDate = await models.Claim_Summary.findOne({
                             where: { is_active: true },
@@ -121,7 +122,7 @@ function upload_data() {
                                 "Provider_Remit_Total_Paid_Amount_Total": function(item, head, resultRow, row , colIdx) {
                                    if (item == '' ) {
                                        return null;
-                                   } else if (isNaN(parseInt(item))) {
+                                   } else if (isNaN(item)) {
                                     //    TIMELOGGER.error(`Incorrect Value for ${head} ROW: ${JSON.stringify(resultRow)}`)
                                       return null;
                                    } else {
@@ -133,7 +134,7 @@ function upload_data() {
                                 "Provider_Billed_Amount_UC": function(item, head, resultRow, row , colIdx) {
                                    if (item == '' ) {
                                        return null;
-                                   } else if (isNaN(parseInt(item))) {
+                                   } else if (isNaN(item)) {
                                     //    TIMELOGGER.error(`Incorrect Value for ${head} ROW: ${JSON.stringify(resultRow)}`)
                                       return null;
                                    } else {
@@ -193,7 +194,7 @@ function upload_data() {
                                 "Plan_Remit_Paid_Amount": function(item, head, resultRow, row , colIdx) {
                                    if (item == '' ) {
                                        return null;
-                                   } else if (isNaN(parseInt(item))) {
+                                   } else if (isNaN(item)) {
                                     //    TIMELOGGER.error(`Incorrect Value for ${head} ROW: ${JSON.stringify(resultRow)}`)
                                       return null;
                                    } else {
@@ -205,7 +206,7 @@ function upload_data() {
                                 "Plan_Billed_Amount": function(item, head, resultRow, row , colIdx) {
                                    if (item == '' ) {
                                        return null;
-                                   } else if (isNaN(parseInt(item))) {
+                                   } else if (isNaN(item)) {
                                     //    TIMELOGGER.error(`Incorrect Value for ${head} ROW: ${JSON.stringify(resultRow)}`)
                                       return null;
                                    } else {
@@ -363,7 +364,11 @@ function upload_data() {
                                             TIMELOGGER.error(`Plan_Remit_Date Null ROW: ${i}`);
                                             diff = 0;
                                         } else {
-                                            diff = new Date(item.plan_remit_date) - new Date(maxDate.date);
+                                            let remitdate = new Date(maxDate.date);
+                                            // extend remit out limit to 15 days
+                                            remitdate = remitdate.setDate(remitdate.getDate() - 15);
+                                            remitReferenceDate = new Date(remitdate);
+                                            diff = new Date(item.plan_remit_date) - remitdate;
                                             if (!fileMaxDate) {
                                                 fileMaxDate = new Date(item.plan_remit_date);
                                             } else {
@@ -395,9 +400,10 @@ function upload_data() {
                                 if (errOutRowsCount > 0) {
                                     writeErrorOutData(headerRow, errOutRows, fileName);
                                 }
-                                TIMELOGGER.info(`************* STATUS ************ \n`)
+                                TIMELOGGER.info(`************* STATUS ************ \n`);
                                 TIMELOGGER.info(`MAX Plan_Remit_Date DATABASE: ${databaseMaxDate}`);
                                 TIMELOGGER.info(`MAX Plan_Remit_Date FILE: ${fileMaxDate}`);
+                                TIMELOGGER.info(`Plan_Remit_Date Reference : ${remitReferenceDate}`);
                                 TIMELOGGER.info(`Total Rows in a File: ${result.length}`);
                                 TIMELOGGER.info(`Total error out Rows: ${errOutRowsCount}`);
                                 TIMELOGGER.info(`Total RemitOut Rows: ${remitOutCount}`);
