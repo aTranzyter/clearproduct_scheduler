@@ -58,6 +58,11 @@ function upload_data() {
                         let databaseMaxDate;
                         let remitReferenceDate;
                         let diff;
+                        if (fileUploadInProgress) {
+                            TIMELOGGER.info(`File Upload is already in Progress, new request dismissed.`);
+                            return;
+                        }
+                        fileUploadInProgress = true;
                         let customDates = await models.Batch_Process.findOne({ where: { process_status: 'upload'}, raw: true });
                         if (customDates && customDates.id) {
                             // eslint-disable-next-line
@@ -88,12 +93,12 @@ function upload_data() {
                         if (customDates && customDates.end_time) {
                             futureDate = new Date(customDates.end_time);
                         }
-                        if (fileUploadInProgress) {
-                            return;
-                        }
+                        // if (fileUploadInProgress) {
+                        //     return;
+                        // }
                         // console.log('databaseMaxDate ', databaseMaxDate)
                         // console.log('futureDate ', futureDate)
-                        fileUploadInProgress = true;
+                        // fileUploadInProgress = true;
                         setTimeout(function() {
                             if (fileUploadInProgress) {
                                 fileUploadInProgress = false;
@@ -356,7 +361,7 @@ function upload_data() {
                                         errOutRows.push(result[i]);
                                         TIMELOGGER.error(`ROW or claim_id or claim_line_item_control_number is undefined ROW:${i}`)
                                         diff = 0;
-                                    } else if (new Date(item.plan_remit_date) > futureDate) {
+                                    } else if (new Date(item.plan_remit_date) >= futureDate) {
                                         errOutRowsCount++;
                                         errOutRows.push(result[i]);
                                         // let { claimId, claimLineId} = getMaskedIds(item);
@@ -399,7 +404,11 @@ function upload_data() {
                                                 }
                                             }
                                             if (diff < 1) {
-                                                remitOutCount++;
+                                                if (diff == 0) {
+                                                    diff = 1;
+                                                } else {
+                                                    remitOutCount++;
+                                                }
                                             }
                                         }
 
