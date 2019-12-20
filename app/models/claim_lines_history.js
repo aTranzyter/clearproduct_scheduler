@@ -58,7 +58,8 @@ module.exports = function (Sequlize, Types) {
         patient_last_name: { type: Types.STRING },
         patient_subscriber_id: { type: Types.STRING },
         plan_remit_payer_claim_id: { type: Types.STRING },
-        authorization_id: { type: Types.STRING }
+        authorization_id: { type: Types.STRING },
+        plan_billed_patient_acct_number: { type: Types.STRING }
         
     }, {
             modelName: 'Claim_Lines_History',
