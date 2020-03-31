@@ -1,6 +1,6 @@
 
 const { sequelize } = require('../models');
-const { database, username, host } = require('../config').SQL;
+const { database } = require('../config').SQL;
 async function update_color_range() {
     await sequelize.query(`DROP PROCEDURE IF EXISTS ${database}.\`Update_Color_Range\`;`);
     sequelize.query(`
@@ -21,11 +21,20 @@ async function update_color_range() {
 
             BEGIN
             UPDATE ${database}.Claim_Summary cs,
-                (SELECT
-                    claim_id, AVG(priority_score) AS rank1
-                FROM
-                ${database}.Claim_Lines
-                GROUP BY claim_id ) rs
+                (SELECT 
+                    rs.rank1, cls.claim_id
+               FROM
+                   (SELECT 
+                       patient_subscriber_id, SUM(priority_score) AS rank1
+                   FROM
+                       ${database}.Claim_Lines
+                   GROUP BY patient_subscriber_id) rs
+                       JOIN
+                   (SELECT 
+                       patient_subscriber_id, claim_id
+                   FROM
+                       ${database}.Claim_Lines) cls ON cls.patient_subscriber_id = rs.patient_subscriber_id
+                                ) rs
                 SET
                     cs.priority_score = rs.rank1
                 WHERE

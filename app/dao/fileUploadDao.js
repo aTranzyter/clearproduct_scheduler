@@ -6,7 +6,7 @@ const models = require('../models')
 const config = require('../config');
 const { TIMELOGGER } = require('../winston');
 const rank_service = require('../manager/rankManager');
-const MAX_ROWS_INSERT = 5000;
+const MAX_ROWS_INSERT = 1000;
 const READ_BATCH_SIZE = 50000;
 const SUCCESS = 'success';
 const ERROR = 'error';
@@ -22,7 +22,7 @@ const UPDATE_COLUMNS = [
     'provider_billed_submission_version', 'plan_billed_carc_1', 'plan_billed_carc_2', 'plan_remit_carc_1',
     'plan_remit_carc_2', 'plan_remit_carc_3', 'plan_remit_carc_4', 'plan_remit_carc_5', 'plan_remit_carc_6',
     'routg_rsn_dsc', 'plan_billed_date', 'service_start_date', 'service_end_date', 'service_Line', 'plan_billed_hcpc',
-    'assigned_to', 'status', 'is_processed', 'updatedAt', 'updatedBy', 'note', 'priority_score', 'plan_billed_patient_acct_number'];
+    'is_processed', 'updatedAt', 'updatedBy', 'plan_billed_patient_acct_number'];
 
 function upload_data() {
     TIMELOGGER.info(`CHECKING FOR NEW FILES..`);
@@ -381,6 +381,8 @@ function upload_data() {
                                                         // return new Date(item);
                                                     },
                                                     // eslint-disable-next-line
+                                                    "Claim_ID": "string",
+                                                    "Claim_Line_Item_Control_Number": "string",
                                                     "Patient_Number": "string",
                                                     "Health_Plan": "string",
                                                     "Carrier_Name": "string",
@@ -689,7 +691,7 @@ function insert_file_data(data, isFinalLoad) {
                             await models.Claim_Lines.bulkCreate(dataToInsert, { transaction: t, updateOnDuplicate: UPDATE_COLUMNS })
                             TIMELOGGER.info(`total completed ${(count + 1) * MAX_ROWS_INSERT}`);
                             count++;
-                            if (dataToUpdate.length == 0) {
+                            if (dataToUpdate.length == 0 && !isFinalLoad) {
                                 resolve('SUCCESS');
                             }
                         } catch (err) {
@@ -711,7 +713,7 @@ function insert_file_data(data, isFinalLoad) {
                         result = await models.Claim_Summary.bulkCreate(summary_data, { transaction: t, updateOnDuplicate: UPDATE_COLUMNS })
                         await models.Claim_Lines.bulkCreate(data, { transaction: t, updateOnDuplicate: UPDATE_COLUMNS })
                         move_file(SUCCESS);
-                        return resolve('success');
+                        // return resolve('success');
                     } catch (err) {
                         if (isFinalLoad) {
                             batch_process_log(err, startTime, ERROR);
@@ -729,6 +731,7 @@ function insert_file_data(data, isFinalLoad) {
                     batch_process_log('Inserted Successfully', startTime, SUCCESS);
                     move_file(SUCCESS);
                     rank_service.updateClaimLineRanking();
+                    return resolve('success');
                 }
                 // res.status(200).send(result);
             });
