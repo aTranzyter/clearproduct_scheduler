@@ -86,5 +86,9 @@ async function update_color_range() {
             console.log(' err procedure ', err.message)
         })
 }
-
+//                 SELECT
+//                     claim_id, AVG(priority_score) AS rank1
+//                 FROM
+//                 ${database}.Claim_Lines
+//                 GROUP BY claim_id
 module.exports = { update_color_range }
