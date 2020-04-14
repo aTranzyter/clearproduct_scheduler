@@ -24,11 +24,12 @@ async function update_color_range() {
                 (SELECT 
                     rs.rank1, cls.claim_id
                FROM
-                   (SELECT 
-                       patient_subscriber_id, SUM(priority_score) AS rank1
-                   FROM
-                       ${database}.Claim_Lines
-                   GROUP BY patient_subscriber_id) rs
+                   (select patient_subscriber_id, sum(priority_score) as rank1 from (SELECT 
+                    cls.patient_subscriber_id as patient_subscriber_id, cls.priority_score as priority_score, cls.claim_id as claim_id
+                FROM
+                    ${database}.Claim_Lines  cls
+                    JOIN ${database}.Claim_Summary cs ON cs.claim_id = cls.claim_id where cs.status is Null) result
+                 GROUP BY patient_subscriber_id) rs
                        JOIN
                    (SELECT 
                        patient_subscriber_id, claim_id
