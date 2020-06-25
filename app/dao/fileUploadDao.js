@@ -22,7 +22,8 @@ const UPDATE_COLUMNS = [
     'provider_billed_submission_version', 'plan_billed_carc_1', 'plan_billed_carc_2', 'plan_remit_carc_1',
     'plan_remit_carc_2', 'plan_remit_carc_3', 'plan_remit_carc_4', 'plan_remit_carc_5', 'plan_remit_carc_6',
     'routg_rsn_dsc', 'plan_billed_date', 'service_start_date', 'service_end_date', 'service_Line', 'plan_billed_hcpc',
-    'is_processed', 'updatedAt', 'updatedBy', 'plan_billed_patient_acct_number'];
+    'is_processed', 'updatedAt', 'updatedBy', 'plan_billed_patient_acct_number', 'ccx_account_amount',
+     'plan_remit_patient_responsibility_amount', 'plan_remit_capitation_amount', 'claim_type'];
 
 function upload_data() {
     TIMELOGGER.info(`CHECKING FOR NEW FILES..`);
@@ -381,6 +382,42 @@ function upload_data() {
                                                         // return new Date(item);
                                                     },
                                                     // eslint-disable-next-line
+                                                    "CCX_ACCOUNT_AMOUNT": function (item, head, resultRow, row, colIdx) {
+                                                        if (item == '') {
+                                                            return null;
+                                                        } else if (isNaN(item)) {
+                                                            //    TIMELOGGER.error(`Incorrect Value for ${head} ROW: ${JSON.stringify(resultRow)}`)
+                                                            return null;
+                                                        } else {
+                                                            return item;
+                                                        }
+                                                        // return new Date(item);
+                                                    },
+                                                    // eslint-disable-next-line
+                                                    "PLAN_REMIT_PATIENT_RESPONSIBILITY_AMOUNT": function (item, head, resultRow, row, colIdx) {
+                                                        if (item == '') {
+                                                            return null;
+                                                        } else if (isNaN(item)) {
+                                                            //    TIMELOGGER.error(`Incorrect Value for ${head} ROW: ${JSON.stringify(resultRow)}`)
+                                                            return null;
+                                                        } else {
+                                                            return item;
+                                                        }
+                                                        // return new Date(item);
+                                                    },
+                                                    // eslint-disable-next-line
+                                                    "PLAN_REMIT_CAPITATION_AMOUNT": function (item, head, resultRow, row, colIdx) {
+                                                        if (item == '') {
+                                                            return null;
+                                                        } else if (isNaN(item)) {
+                                                            //    TIMELOGGER.error(`Incorrect Value for ${head} ROW: ${JSON.stringify(resultRow)}`)
+                                                            return null;
+                                                        } else {
+                                                            return item;
+                                                        }
+                                                        // return new Date(item);
+                                                    },
+                                                    // eslint-disable-next-line
                                                     "Claim_ID": "string",
                                                     "Claim_Line_Item_Control_Number": "string",
                                                     "Patient_Number": "string",
@@ -411,6 +448,7 @@ function upload_data() {
                                                     "AUTHORIZATION_ID": "string",
                                                     "Plan_Remit_Payer_Claim_ID": "string",
                                                     "Patient_Subscriber_ID": "string",
+                                                    "CLAIM_TYPE": "string"
 
                                                 },
                                                 checkType: true

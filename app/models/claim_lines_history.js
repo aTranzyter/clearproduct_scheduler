@@ -59,7 +59,11 @@ module.exports = function (Sequlize, Types) {
         patient_subscriber_id: { type: Types.STRING },
         plan_remit_payer_claim_id: { type: Types.STRING },
         authorization_id: { type: Types.STRING },
-        plan_billed_patient_acct_number: { type: Types.STRING }
+        plan_billed_patient_acct_number: { type: Types.STRING },
+        ccx_account_amount: { type: Types.DOUBLE },
+        plan_remit_patient_responsibility_amount: { type: Types.DOUBLE },
+        plan_remit_capitation_amount: { type: Types.DOUBLE },
+        claim_type: { type: Types.STRING }
         
     }, {
             modelName: 'Claim_Lines_History',
