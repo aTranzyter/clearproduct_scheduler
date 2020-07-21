@@ -227,7 +227,7 @@ function upload_data() {
                                                     "Provider_Remit_Total_Paid_Amount_Total": function (item, head, resultRow, row, colIdx) {
                                                         if (item == '') {
                                                             return null;
-                                                        } else if (isNaN(item)) {
+                                                        } else if (isNaN(item) || item.includes('e')) {
                                                             //    TIMELOGGER.error(`Incorrect Value for ${head} ROW: ${JSON.stringify(resultRow)}`)
                                                             return null;
                                                         } else {
@@ -239,7 +239,7 @@ function upload_data() {
                                                     "Provider_Billed_Amount_UC": function (item, head, resultRow, row, colIdx) {
                                                         if (item == '') {
                                                             return null;
-                                                        } else if (isNaN(item)) {
+                                                        } else if (isNaN(item) || item.includes('e')) {
                                                             //    TIMELOGGER.error(`Incorrect Value for ${head} ROW: ${JSON.stringify(resultRow)}`)
                                                             return null;
                                                         } else {
@@ -299,7 +299,7 @@ function upload_data() {
                                                     "Plan_Remit_Paid_Amount": function (item, head, resultRow, row, colIdx) {
                                                         if (item == '') {
                                                             return null;
-                                                        } else if (isNaN(item)) {
+                                                        } else if (isNaN(item) || item.includes('e')) {
                                                             //    TIMELOGGER.error(`Incorrect Value for ${head} ROW: ${JSON.stringify(resultRow)}`)
                                                             return null;
                                                         } else {
@@ -311,7 +311,7 @@ function upload_data() {
                                                     "Plan_Billed_Amount": function (item, head, resultRow, row, colIdx) {
                                                         if (item == '') {
                                                             return null;
-                                                        } else if (isNaN(item)) {
+                                                        } else if (isNaN(item) || item.includes('e')) {
                                                             //    TIMELOGGER.error(`Incorrect Value for ${head} ROW: ${JSON.stringify(resultRow)}`)
                                                             return null;
                                                         } else {
@@ -385,7 +385,7 @@ function upload_data() {
                                                     "CCX_ACCOUNT_AMOUNT": function (item, head, resultRow, row, colIdx) {
                                                         if (item == '') {
                                                             return null;
-                                                        } else if (isNaN(item)) {
+                                                        } else if (isNaN(item) || item.includes('e')) {
                                                             //    TIMELOGGER.error(`Incorrect Value for ${head} ROW: ${JSON.stringify(resultRow)}`)
                                                             return null;
                                                         } else {
@@ -397,7 +397,7 @@ function upload_data() {
                                                     "PLAN_REMIT_PATIENT_RESPONSIBILITY_AMOUNT": function (item, head, resultRow, row, colIdx) {
                                                         if (item == '') {
                                                             return null;
-                                                        } else if (isNaN(item)) {
+                                                        } else if (isNaN(item) || item.includes('e')) {
                                                             //    TIMELOGGER.error(`Incorrect Value for ${head} ROW: ${JSON.stringify(resultRow)}`)
                                                             return null;
                                                         } else {
@@ -409,7 +409,7 @@ function upload_data() {
                                                     "PLAN_REMIT_CAPITATION_AMOUNT": function (item, head, resultRow, row, colIdx) {
                                                         if (item == '') {
                                                             return null;
-                                                        } else if (isNaN(item)) {
+                                                        } else if (isNaN(item) || item.includes('e')) {
                                                             //    TIMELOGGER.error(`Incorrect Value for ${head} ROW: ${JSON.stringify(resultRow)}`)
                                                             return null;
                                                         } else {
@@ -446,8 +446,8 @@ function upload_data() {
                                                     "Plan_Billed_HCPC": "string",
                                                     "Claim_Form_Type": "string",
                                                     "AUTHORIZATION_ID": "string",
-                                                    "Plan_Remit_Payer_Claim_ID": "string",
-                                                    "Patient_Subscriber_ID": "string",
+                                                    "PLAN_REMIT_PAYER_CLAIM_ID": "string",
+                                                    "PATIENT_SUBSCRIBER_ID": "string",
                                                     "CLAIM_TYPE": "string"
 
                                                 },
